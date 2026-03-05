@@ -114,41 +114,44 @@ After triage, work in a loop. Each iteration: ask one well-chosen question, then
 
 2. **After the user answers**, output the full updated constraint list.
 
-   **On iteration 1**, output the list in regular markdown under the heading **Constraints / Misfits**.
+   **Every constraint and misfit is numbered** (e.g., `1.`, `2.`, `3.`). Numbers are stable across iterations — a constraint keeps its number even when reworded. When a constraint is removed, its number is retired (not reused). New constraints get the next available number. This lets the user refer to items by number (e.g., "update #3", "remove #5 and #7").
 
-   **From iteration 2 onward**, output the full list as a single fenced code block with the `diff` language tag. Every constraint appears — unchanged lines get a space prefix, removed/replaced lines get `-`, and new/updated lines get `+`. This is not a minimal diff; it is the *complete* list with change markers inline:
+   **On iteration 1**, output the list in regular markdown under the heading **Constraints / Misfits**. Number each item.
+
+   **From iteration 2 onward**, output the full list as a single fenced code block with the `diff` language tag. Every constraint appears with its number — unchanged lines get a space prefix, removed/replaced lines get `-`, and new/updated lines get `+`. This is not a minimal diff; it is the *complete* list with change markers inline:
 
    ````
    ```diff
-     Unchanged constraint
-   - Old version of a refined constraint
-   + New version of that constraint
-     Another unchanged constraint
-   + Brand-new constraint from this iteration
-     Yet another unchanged constraint
+     1. Unchanged constraint
+   - 2. Old version of a refined constraint
+   + 2. New version of that constraint
+     3. Another unchanged constraint
+   + 8. Brand-new constraint from this iteration
+     4. Yet another unchanged constraint
    ```
    ````
 
    Rules:
    - Always show the **full list** — every constraint, not just the changes
+   - Every line includes the item's stable number
    - Unchanged lines: space prefix
    - Removed or replaced: `-` prefix
-   - New or reworded: `+` prefix
-   - When a constraint is *refined*, show the old `-` and new `+` lines adjacent
+   - New or reworded: `+` prefix (keeps the same number when refining an existing item)
+   - When a constraint is *refined*, show the old `-` and new `+` lines adjacent with the same number
    - If nothing changed, output the list in regular markdown instead (no diff block)
 
    Content rules (apply to all iterations):
-   - One bullet/line per concrete constraint, requirement, preference, or boundary
-   - Mark anything that conflicts or creates tension as a **misfit** (e.g., "Misfit: wants cheap + wants Mendocino — these pull against each other")
+   - One numbered line per concrete constraint, requirement, preference, or boundary
+   - Mark anything that conflicts or creates tension as a **misfit** (e.g., "5. Misfit: wants cheap + wants Mendocino — these pull against each other")
    - Include inferred constraints (from context, not just explicit statements) and mark them as *inferred*
 
 3. **Confirm the list via `AskUserQuestion`** — Ask the user to verify the constraints and misfits before continuing. Do NOT proceed to the next question until the user confirms.
 
    **Question — Confirm** (header: "Confirm")
-   > "Does this capture things accurately?"
+   > "Does this capture things accurately? (You can reference items by number, e.g. 'update #3' or 'remove #5 and #7')"
    - **Looks good** — The constraints and misfits are correct as listed
 
-   Only provide the single "Looks good" option. The tool's built-in "Other" option lets the user type corrections or additions. If the user types something via "Other," incorporate their feedback, re-display the updated list, and confirm again before proceeding.
+   Only provide the single "Looks good" option. The tool's built-in "Other" option lets the user type corrections or additions by number. If the user types something via "Other," incorporate their feedback, re-display the updated list (retiring numbers of removed items, preserving numbers of updated items), and confirm again before proceeding.
 
 4. **Then ask the next question** — chosen based on the confirmed constraint list. Prioritize questions that resolve misfits, close the biggest remaining ambiguity, or test an assumption you've been making. Always use `AskUserQuestion` as described in step 1.
 
@@ -208,13 +211,13 @@ You said "cheap house" — but the core need seems to be *stable, affordable spa
 → User selects: **Both equally**
 
 **Constraints / Misfits**
-- Near Mendocino, within 30 min drive
-- Low income — needs to be cheap
-- Lives in RV with wife and cat
-- Needs space to park RV (in-law suite use)
-- Primary motivation: stability + building equity (weighted equally)
-- **Misfit:** "cheap" + "within 30 min of Mendocino" + "buy" — Mendocino is expensive; these three pull hard against each other
-- *Inferred:* may not qualify for a conventional mortgage given limited income
+1. Near Mendocino, within 30 min drive
+2. Low income — needs to be cheap
+3. Lives in RV with wife and cat
+4. Needs space to park RV (in-law suite use)
+5. Primary motivation: stability + building equity (weighted equally)
+6. **Misfit:** "cheap" + "within 30 min of Mendocino" + "buy" — Mendocino is expensive; these three pull hard against each other
+7. *Inferred:* may not qualify for a conventional mortgage given limited income
 
 *The skill confirms via `AskUserQuestion`:*
 
@@ -250,17 +253,17 @@ You said "cheap house" — but the core need seems to be *stable, affordable spa
 → User selects: **Yes, $10k–$20k**
 
 ```diff
-  Near Mendocino, within 30 min drive
-- Low income — needs to be cheap
-+ Budget: $100k–$150k, with $10k–$20k down payment
-+ Low income — needs affordable monthly payments
-  Lives in RV with wife and cat
-  Needs space to park RV (in-law suite use)
-  Primary motivation: stability + building equity (weighted equally)
-- Misfit: "cheap" + "within 30 min of Mendocino" + "buy" — Mendocino is expensive; these three pull hard against each other
-+ Misfit: $150k ceiling within 30 min of Mendocino is very tight for a house — but feasible for raw land or owner-financed land with a structure
-- Inferred: may not qualify for a conventional mortgage given limited income
-+ Inferred: conventional mortgage may be difficult; owner financing or land purchase more realistic
+  1. Near Mendocino, within 30 min drive
+- 2. Low income — needs to be cheap
++ 2. Budget: $100k–$150k, with $10k–$20k down payment
++ 8. Low income — needs affordable monthly payments
+  3. Lives in RV with wife and cat
+  4. Needs space to park RV (in-law suite use)
+  5. Primary motivation: stability + building equity (weighted equally)
+- 6. Misfit: "cheap" + "within 30 min of Mendocino" + "buy" — Mendocino is expensive; these three pull hard against each other
++ 6. Misfit: $150k ceiling within 30 min of Mendocino is very tight for a house — but feasible for raw land or owner-financed land with a structure
+- 7. Inferred: may not qualify for a conventional mortgage given limited income
++ 7. Inferred: conventional mortgage may be difficult; owner financing or land purchase more realistic
 ```
 
 *The skill confirms via `AskUserQuestion`:*
