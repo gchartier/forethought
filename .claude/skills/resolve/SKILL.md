@@ -14,62 +14,15 @@ You are a reasoning partner helping the user surface, sharpen, and record
 architectural decisions. You use an Alexandrian-inspired format where decisions
 emerge from named forces — not imposed, but resolved.
 
-## Discovery Spec Intake
+## Context Loading
 
-**Always** check for `.claude/plans/discovery.md` at the start of any `/resolve` invocation. If it exists, read it — it contains the discovery spec produced by `/explore` and represents the problem statement, scope, constraints, and deferred features that this ADR process should address. Use it as foundational context:
+**Always** check for `.claude/plans/discovery.md` and `.claude/adrs/backlog.md` at the start of any `/resolve` invocation. If they exist, read them — the discovery spec provides the problem statement, scope, and constraints; the backlog maps the decision landscape. Use both as foundational context for any decision being made.
 
-- In **MAP** mode, use it to seed the decision landscape instead of asking the user to describe what they're building from scratch. The discovery spec has already captured the what and why — MAP should focus on surfacing the architectural decisions implied by that spec.
-- In **DISTILL/CAPTURE/DELIBERATE** modes, reference it as background context for any decision being made.
-
-If the discovery spec exists, acknowledge it: *"I found the discovery spec for [project name]. I'll use it as the foundation for mapping out architectural decisions."*
+If either exists, acknowledge it briefly: *"I found the discovery spec and backlog for [project name]. I'll use them as context."*
 
 ## Entry Points
 
 Detect which mode applies, or ask if unclear.
-
-### MAP — mapping the decision space
-
-The user is starting architecture on a project (or a major new area of one) and
-needs to figure out *what decisions exist* before making any of them. Your job is
-to facilitate a divergent/convergent thinking session that produces an initial
-architecture plan — the backlog structure itself.
-
-This mode borrows from `/explore`: you are not here to decide, you are
-here to help the user **discover what needs deciding**.
-
-1. **Orient** — Ask the user to describe what they're building, in their own
-   words. Don't correct or structure yet. Listen for: what excites them, what
-   feels hard, what they've already decided (even implicitly), what they're
-   unsure about.
-
-2. **Gather sources** — Ask: *"Are there any significant external resources —
-   reference systems, prior art, articles, specs, competing approaches — that
-   should inform this architecture? Things you've read, bookmarked, or know
-   exist."* Collect these as the Key Reference Sources for the architecture plan.
-
-3. **Diverge** — Help them brainstorm the full landscape of decisions. Ask
-   probing questions to surface decisions they haven't thought of yet:
-   - *"What are you most unsure about?"*
-   - *"What are you most opinionated about?"*
-   - *"Where do you see tension between what you want and what's practical?"*
-   - *"What would a skeptic challenge about this design?"*
-   - *"Are there things you've implicitly decided that are worth making explicit?"*
-   Don't filter or organize yet. Capture everything.
-
-4. **Converge** — Group the raw decisions into natural categories. Name
-   dependency relationships: which decisions gate others? Propose a layered
-   structure (e.g., Foundational → Structural → Operational → Deferred).
-   Present this back: *"Here's what I see as the decision landscape. What's
-   missing? What's in the wrong bucket?"*
-
-5. **Write** — Produce the architecture plan file at `.claude/adrs/backlog.md`
-   using the format documented in that file. Include the framing section (what's
-   being built, participants, key constraints), the reference sources, and the
-   categorized backlog items with whatever research context, tensions, and
-   dependencies are known so far.
-
-The output of MAP mode is the backlog itself — not an ADR. No decision is made;
-the terrain is charted.
 
 ### DISTILL — mid-conversation
 
@@ -103,19 +56,15 @@ resolution emerge from them.
 
 ## Workflow
 
-For MAP mode, follow the MAP entry point steps above. The workflow below
-applies to DISTILL, CAPTURE, and DELIBERATE modes.
-
 ```
 Step 1: Detect mode (DISTILL / CAPTURE / DELIBERATE)
 Step 2: Gather material (scan context, ask, surface resources)
 Step 3: Review sources (present compiled list, user confirms before drafting)
 Step 4: Draft full ADR (draft aggressively, confirm explicitly)
-Step 5: Iterate section by section (using AskUserQuestion)
-Step 6: Choose diagram (using AskUserQuestion)
-Step 7: Save as Proposed
-Step 8: Feedback cycle (user annotates → agent resolves → repeat)
-Step 9: Accept
+Step 5: Iterate section by section (including diagram)
+Step 6: Save as Proposed
+Step 7: Feedback cycle (user annotates → agent resolves → repeat)
+Step 8: Accept
 ```
 
 ### Step 1 — Detect mode
@@ -141,6 +90,34 @@ examples, prior art?"* If the user names resources, fetch and review them
 before drafting. If the backlog item has no research links, still ask:
 *"Are there any external resources — articles, reference implementations,
 prior art — that should inform this decision?"*
+
+**Delegating long sources:** When a source is too long to process inline
+(large documents, lengthy web pages, extensive code files), do **not** try to
+digest it yourself. Instead, spin up a **Task subagent** dedicated to that
+source. In the subagent prompt:
+
+1. State what the ADR is about — the decision being made and the key tensions
+2. Tell the subagent which source to read/fetch — and tell it to **read the
+   entire source**, not just search for keywords. Context matters; the
+   subagent needs to understand the source as a whole before judging what's
+   relevant
+3. Tell it what to care about — the specific forces, options, or constraints
+   that this source might speak to. This guides what it surfaces, but
+   should not limit what it reads
+4. Ask it to return a concise summary of the parts relevant to the decision,
+   with direct quotes or specific references where useful. It should also
+   flag anything surprising or unexpected it found — context the main agent
+   might not have thought to ask about
+
+Example prompt shape: *"We're drafting an ADR about [decision]. The key
+tensions are [X vs Y]. Read [source path/URL] and extract anything relevant
+to these tensions — recommendations, trade-offs, constraints, prior art.
+Return a concise summary with specific references I can cite."*
+
+Use `subagent_type: "general-purpose"` for these delegations. Launch
+multiple source subagents in parallel when several long sources need
+processing. Fold their results into your source compilation before
+presenting the list in Step 3.
 
 **DISTILL/CAPTURE**: Mine the conversation for:
 - What is being decided (or was decided)
@@ -202,26 +179,13 @@ section at a time so the user can focus:
 - **Paths considered**: *"Are these honest alternatives? Would a reasonable person choose any of the rejected options?"*
 - **Therefore**: *"Does this feel like it follows from the forces, or does it feel imposed?"*
 - **Consequences**: Push here — *"What does this make harder? What options does it close? What new tensions does it create?"*
+- **Diagram**: Present 2–3 options for what the diagram should show (e.g., system topology after the decision, force diagram, before/after flow, dependency graph). Generate ASCII for simplicity or mermaid when topology is complex. The diagram must show something the prose doesn't — not decorative.
 
 Use AskUserQuestion with concrete options where possible (e.g., "Looks good" /
 "Needs changes" / "Missing a force"), so the user can respond quickly when a
 section is solid and elaborate only when needed.
 
-### Step 6 — Choose diagram
-
-Use **AskUserQuestion** to present 2–3 options for what the diagram should show.
-Examples:
-
-- System topology or component relationships after this decision
-- Force diagram showing tensions and how the decision resolves them
-- Before/after flow showing what changes
-- Dependency graph affected by this choice
-
-Generate an ASCII diagram for simplicity, or a mermaid block when
-topology or flow is complex. The diagram must show something the
-prose doesn't — not decorative.
-
-### Step 7 — Save as Proposed
+### Step 6 — Save as Proposed
 
 **Always save with status Proposed**, regardless of mode.
 
@@ -236,7 +200,7 @@ After saving, tell the user: *"Saved as Proposed. Review the document and add
 any feedback directly as markdown quotes (`> your note`) wherever you want
 changes. Let me know when you're done annotating."*
 
-### Step 8 — Feedback cycle
+### Step 7 — Feedback cycle
 
 When the user signals they have annotated the document:
 
@@ -253,7 +217,7 @@ When the user signals they have annotated the document:
 Repeat this cycle as many times as needed. Each round: read → resolve
 annotations → save as Proposed → ask if done.
 
-### Step 9 — Accept
+### Step 8 — Accept
 
 When the user indicates the ADR is final (no more feedback), use
 **AskUserQuestion** to confirm:
@@ -344,38 +308,11 @@ What new tensions emerge — these are seeds for future decisions.
 
 ### Sources
 
-Every ADR **must** contain a Sources section immediately after the situation
-paragraph. Sources are any external documents, files, or URLs that were
-referenced during the creation of the ADR — backlog items, other ADRs,
-documentation, articles, specs, web pages, code files, etc.
+Every ADR **must** have a Sources section after the situation paragraph. Each source gets a numeric key (`[N](path/or/url)`) used as the visible link text both in the Sources list and inline throughout the body — so the reader can click through from any reference point.
 
-Each source gets a numeric key. The key is used as the visible link text
-throughout the ADR body, so the reader can click it to open the source
-directly in their IDE or browser:
+Sources include: backlog items, other ADRs, documentation, articles, code files, URLs — anything referenced during creation. Reference sources inline wherever a claim, force, or option draws on them: `([2](https://example.com/docs))`.
 
-```markdown
-**Sources:**
-
-[1](../adrs/backlog.md) — Architecture backlog, item F2
-[2](https://svelte.dev/docs/kit/routing) — SvelteKit routing docs
-[3](../../src/lib/auth.ts) — Current auth implementation
-```
-
-Reference sources inline wherever a claim, force, or option draws on
-that source. Use the same `[key](path)` link so the reader can jump
-to the source from the point of reference:
-
-```markdown
-**Forces:**
-
-- **Routing complexity ↔ Simplicity** — SvelteKit's file-based router
-  ([2](https://svelte.dev/docs/kit/routing)) handles most cases, but the
-  current auth layer ([3](../../src/lib/auth.ts)) assumes centralized
-  route guards...
-```
-
-If an ADR genuinely has no external sources (rare), include the section
-with: `No sources referenced.`
+If no external sources were referenced (rare), include: `No sources referenced.`
 
 ## Index Format
 
@@ -395,7 +332,7 @@ Maintain `.claude/adrs/index.md`:
 - **Location**: `.claude/adrs/`
 - **Naming**: `NNN-slugified-title.md` (e.g., `001-use-postgresql.md`)
 - **Index**: `.claude/adrs/index.md` — record of decisions made
-- **Architecture plan**: `.claude/adrs/backlog.md` — the hub document. Contains the framing (what's being built), key reference sources, and the categorized backlog of candidate decisions with research context and dependencies. Produced by MAP mode; updated as ADRs are made.
+- **Architecture backlog**: `.claude/adrs/backlog.md` — the decision landscape. Contains framing, reference sources, and categorized candidate decisions with research context and dependencies. Produced by `/explore`; updated as ADRs are made.
 - **Numbering**: sequential, zero-padded to 3 digits, never reused
 
 ## When the material is thin

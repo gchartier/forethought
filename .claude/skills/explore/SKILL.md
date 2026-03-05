@@ -171,7 +171,56 @@ After triage, work in a loop. Each iteration: ask one well-chosen question, then
    The user can type adjustments via "Other" if something needs changing.
 
 2. **Always save the final synthesis** to `.claude/plans/discovery.md` in the current project directory (create the directory if it doesn't exist). The file should be a clean, well-structured markdown document — not a transcript of the conversation, but the distilled output: problem statement, core scope, deferred features, constraints, and audiences.
-3. After saving, suggest the user run `/resolve` to begin working through the architectural decisions needed to move from this spec to a technical implementation plan. Frame it as: "The exploration spec is saved. The next step is to resolve the architectural decisions — want to run `/resolve` to start building the decision backlog?"
+
+3. **Generate the architecture backlog.** Review the final constraints and misfits and identify which ones imply architectural decisions — choices with genuine tension where multiple reasonable approaches exist. Then:
+   - Group the candidate decisions into natural categories (e.g., Foundational → Structural → Operational → Deferred)
+   - Name dependency relationships: which decisions gate others?
+   - For each item, note known tensions, relevant constraints from the discovery, and any reference sources surfaced during exploration
+   - Write to `.claude/adrs/backlog.md` (create the directory if needed) using this structure:
+
+   ```markdown
+   # Architecture Backlog
+
+   **Project:** [name]
+   **Date:** YYYY-MM-DD
+   **Source:** discovery.md
+
+   ## Framing
+
+   [1-2 sentences: what's being built and the key constraints shaping it]
+
+   ## Reference Sources
+
+   - [Any significant resources surfaced during exploration]
+
+   ## Backlog
+
+   ### Foundational
+
+   - **F1: [Decision name]** — [one-line tension]. Depends on: —. Sources: [if any]
+   - **F2: [Decision name]** — [one-line tension]. Depends on: F1. Sources: [if any]
+
+   ### Structural
+
+   - **S1: [Decision name]** — [one-line tension]. Depends on: F1, F2. Sources: [if any]
+
+   ### Operational
+
+   - **O1: [Decision name]** — [one-line tension]. Depends on: S1. Sources: [if any]
+
+   ### Deferred
+
+   - **D1: [Decision name]** — [why deferred]
+   ```
+
+   Not every exploration will produce a backlog — if the project is small or the constraints don't imply architectural decisions, skip it and note that. Use `AskUserQuestion` to confirm the backlog before saving:
+
+   **Question — Backlog** (header: "Backlog")
+   > "Here's the decision landscape I see. Does this capture what needs deciding?"
+   - **Looks good, save it** — The backlog captures the right decisions
+   - **Skip the backlog** — This project doesn't need one
+
+4. After saving, suggest `/resolve` to begin working through individual decisions: *"The discovery spec is saved [and the architecture backlog maps N decisions to work through]. Want to run `/resolve` to start resolving them?"*
 
 ## Example — Full Flow
 
