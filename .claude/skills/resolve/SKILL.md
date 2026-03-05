@@ -109,12 +109,13 @@ applies to DISTILL, CAPTURE, and DELIBERATE modes.
 ```
 Step 1: Detect mode (DISTILL / CAPTURE / DELIBERATE)
 Step 2: Gather material (scan context, ask, surface resources)
-Step 3: Draft full ADR (draft aggressively, confirm explicitly)
-Step 4: Iterate section by section (using AskUserQuestion)
-Step 5: Choose diagram (using AskUserQuestion)
-Step 6: Save as Proposed
-Step 7: Feedback cycle (user annotates → agent resolves → repeat)
-Step 8: Accept
+Step 3: Review sources (present compiled list, user confirms before drafting)
+Step 4: Draft full ADR (draft aggressively, confirm explicitly)
+Step 5: Iterate section by section (using AskUserQuestion)
+Step 6: Choose diagram (using AskUserQuestion)
+Step 7: Save as Proposed
+Step 8: Feedback cycle (user annotates → agent resolves → repeat)
+Step 9: Accept
 ```
 
 ### Step 1 — Detect mode
@@ -152,7 +153,31 @@ prior art — that should inform this decision?"*
 - The tension — what's pulling in different directions
 - Any options they've already considered
 
-### Step 3 — Draft full ADR
+### Step 3 — Review sources
+
+Before drafting, present the user with a consolidated list of every source
+identified so far — from the backlog, conversation context, user-provided
+links, fetched documentation, code files, and any other material surfaced
+during Step 2. Format the list as it would appear in the ADR's Sources
+section (numbered keys with paths/URLs and brief descriptions).
+
+Use **AskUserQuestion** to confirm:
+
+*"Here are the sources I've compiled that will inform this ADR:*
+
+*[numbered list of sources]*
+
+*Before I draft, I want to make sure this is complete. Anything to add, remove, or clarify?"*
+
+Options: **Looks complete** / **I have sources to add** / **Some of these need clarification**
+
+If the user adds sources, fetch and review them before proceeding. If the
+user flags sources for clarification, resolve each one. Repeat until the
+user confirms the source list is complete.
+
+Only proceed to drafting once the user has signed off on the sources.
+
+### Step 4 — Draft full ADR
 
 Present a **complete draft** using the format below. A full document is easier
 to react to than a blank template. The user's job is editing, not writing.
@@ -167,7 +192,7 @@ each a numeric key and include them in the Sources section. Use those keys
 as inline references throughout the draft wherever a claim or option draws
 on a specific source.
 
-### Step 4 — Iterate section by section
+### Step 5 — Iterate section by section
 
 Walk through the draft using **AskUserQuestion** for each section. Ask one
 section at a time so the user can focus:
@@ -182,7 +207,7 @@ Use AskUserQuestion with concrete options where possible (e.g., "Looks good" /
 "Needs changes" / "Missing a force"), so the user can respond quickly when a
 section is solid and elaborate only when needed.
 
-### Step 5 — Choose diagram
+### Step 6 — Choose diagram
 
 Use **AskUserQuestion** to present 2–3 options for what the diagram should show.
 Examples:
@@ -196,7 +221,7 @@ Generate an ASCII diagram for simplicity, or a mermaid block when
 topology or flow is complex. The diagram must show something the
 prose doesn't — not decorative.
 
-### Step 6 — Save as Proposed
+### Step 7 — Save as Proposed
 
 **Always save with status Proposed**, regardless of mode.
 
@@ -211,7 +236,7 @@ After saving, tell the user: *"Saved as Proposed. Review the document and add
 any feedback directly as markdown quotes (`> your note`) wherever you want
 changes. Let me know when you're done annotating."*
 
-### Step 7 — Feedback cycle
+### Step 8 — Feedback cycle
 
 When the user signals they have annotated the document:
 
@@ -228,7 +253,7 @@ When the user signals they have annotated the document:
 Repeat this cycle as many times as needed. Each round: read → resolve
 annotations → save as Proposed → ask if done.
 
-### Step 8 — Accept
+### Step 9 — Accept
 
 When the user indicates the ADR is final (no more feedback), use
 **AskUserQuestion** to confirm:
