@@ -85,7 +85,7 @@ A decision is being debated right now. Your job:
 A decision was just made. Your job:
 
 1. Scan conversation context for what was decided, why, and what was rejected
-2. Draft a complete ADR with status **Accepted**
+2. Draft a complete ADR with status **Proposed**
 3. Iterate to confirm accuracy, especially the Consequences
 
 ### DELIBERATE — greenfield
@@ -96,7 +96,7 @@ The user has a tension or misfit to think through. Your job:
 2. Help them name the forces — what pulls in each direction
 3. Generate genuine alternatives (no strawmen)
 4. Reason through options together, letting a resolution emerge
-5. Draft a complete ADR with status **Proposed** (until the user accepts)
+5. Draft a complete ADR with status **Proposed**
 
 This mode is the most Alexandrian: feel the misfit, name the forces, let the
 resolution emerge from them.
@@ -110,9 +110,11 @@ applies to DISTILL, CAPTURE, and DELIBERATE modes.
 Step 1: Detect mode (DISTILL / CAPTURE / DELIBERATE)
 Step 2: Gather material (scan context, ask, surface resources)
 Step 3: Draft full ADR (draft aggressively, confirm explicitly)
-Step 4: Iterate section by section
-Step 5: Choose diagram
-Step 6: Finalize and write file
+Step 4: Iterate section by section (using AskUserQuestion)
+Step 5: Choose diagram (using AskUserQuestion)
+Step 6: Save as Proposed
+Step 7: Feedback cycle (user annotates → agent resolves → repeat)
+Step 8: Accept
 ```
 
 ### Step 1 — Detect mode
@@ -158,9 +160,17 @@ to react to than a blank template. The user's job is editing, not writing.
 Include all sections, even if some are thin. Mark uncertain parts with
 `[?]` so the user knows where to focus.
 
+**Sources are mandatory.** Before drafting, compile the list of every document,
+file, URL, or resource that informed the ADR — backlog items, other ADRs,
+documentation, articles, code files, conversation-referenced links. Assign
+each a numeric key and include them in the Sources section. Use those keys
+as inline references throughout the draft wherever a claim or option draws
+on a specific source.
+
 ### Step 4 — Iterate section by section
 
-Walk through the draft, asking sharpening questions:
+Walk through the draft using **AskUserQuestion** for each section. Ask one
+section at a time so the user can focus:
 
 - **Situation**: *"Does this capture the reality you're working in? Anything missing?"*
 - **Forces**: *"Are these the real tensions? Is anything pulling that I haven't named?"*
@@ -168,21 +178,27 @@ Walk through the draft, asking sharpening questions:
 - **Therefore**: *"Does this feel like it follows from the forces, or does it feel imposed?"*
 - **Consequences**: Push here — *"What does this make harder? What options does it close? What new tensions does it create?"*
 
+Use AskUserQuestion with concrete options where possible (e.g., "Looks good" /
+"Needs changes" / "Missing a force"), so the user can respond quickly when a
+section is solid and elaborate only when needed.
+
 ### Step 5 — Choose diagram
 
-Present 2–3 options for what the diagram should show. Examples:
+Use **AskUserQuestion** to present 2–3 options for what the diagram should show.
+Examples:
 
 - System topology or component relationships after this decision
 - Force diagram showing tensions and how the decision resolves them
 - Before/after flow showing what changes
 - Dependency graph affected by this choice
 
-Ask the user to pick one, or describe what they'd find most useful.
 Generate an ASCII diagram for simplicity, or a mermaid block when
 topology or flow is complex. The diagram must show something the
 prose doesn't — not decorative.
 
-### Step 6 — Finalize
+### Step 6 — Save as Proposed
+
+**Always save with status Proposed**, regardless of mode.
 
 1. Read `.claude/adrs/` to find the highest existing number
 2. Assign the next sequential number (zero-padded to 3 digits)
@@ -190,6 +206,42 @@ prose doesn't — not decorative.
 4. Write to `.claude/adrs/NNN-slugified-title.md`
 5. Update `.claude/adrs/index.md` (create if it doesn't exist)
 6. If this ADR matches a backlog item, update its status in `.claude/adrs/backlog.md` to `→ ADR NNN`
+
+After saving, tell the user: *"Saved as Proposed. Review the document and add
+any feedback directly as markdown quotes (`> your note`) wherever you want
+changes. Let me know when you're done annotating."*
+
+### Step 7 — Feedback cycle
+
+When the user signals they have annotated the document:
+
+1. **Read** the saved ADR file
+2. **Find all annotations** — lines starting with `>` that were not part of the
+   original draft (the situation paragraph uses `>` by convention, so look for
+   *new* quoted lines that appear adjacent to other sections)
+3. **For each annotation**, use **AskUserQuestion** to clarify intent if needed,
+   then resolve the feedback into the document text
+4. **Save again** with status **Proposed**
+5. Tell the user: *"Updated. Review again — add more `> notes` if anything else
+   needs work, or let me know it's ready to accept."*
+
+Repeat this cycle as many times as needed. Each round: read → resolve
+annotations → save as Proposed → ask if done.
+
+### Step 8 — Accept
+
+When the user indicates the ADR is final (no more feedback), use
+**AskUserQuestion** to confirm:
+
+*"Ready to mark this ADR as Accepted?"*
+
+Options: **Accept** / **One more round of feedback**
+
+On acceptance:
+1. Remove any remaining `> annotation` lines from the document
+2. Change status from **Proposed** to **Accepted**
+3. Update the status in `.claude/adrs/index.md`
+4. Save the file
 
 ## ADR Format
 
@@ -203,6 +255,14 @@ prose doesn't — not decorative.
 > A paragraph grounding you in the situation. Concrete, present-tense.
 > Not "background" — the lived reality that makes this decision
 > necessary. You are here, facing this.
+
+**Sources:**
+
+[1](relative/path/to/file.md) — Brief description of what this source is
+[2](https://example.com/relevant-doc) — Brief description
+[3](../adrs/001-prior-decision.md) — Brief description
+
+If no sources were referenced: "No sources referenced."
 
 ---
 
@@ -256,6 +316,41 @@ What new tensions emerge — these are seeds for future decisions.
   or tensions with. Check existing ADRs for relevant links.
 - The **diagram** shows structural or relational consequences — not the
   decision itself, but what the world looks like after.
+
+### Sources
+
+Every ADR **must** contain a Sources section immediately after the situation
+paragraph. Sources are any external documents, files, or URLs that were
+referenced during the creation of the ADR — backlog items, other ADRs,
+documentation, articles, specs, web pages, code files, etc.
+
+Each source gets a numeric key. The key is used as the visible link text
+throughout the ADR body, so the reader can click it to open the source
+directly in their IDE or browser:
+
+```markdown
+**Sources:**
+
+[1](../adrs/backlog.md) — Architecture backlog, item F2
+[2](https://svelte.dev/docs/kit/routing) — SvelteKit routing docs
+[3](../../src/lib/auth.ts) — Current auth implementation
+```
+
+Reference sources inline wherever a claim, force, or option draws on
+that source. Use the same `[key](path)` link so the reader can jump
+to the source from the point of reference:
+
+```markdown
+**Forces:**
+
+- **Routing complexity ↔ Simplicity** — SvelteKit's file-based router
+  ([2](https://svelte.dev/docs/kit/routing)) handles most cases, but the
+  current auth layer ([3](../../src/lib/auth.ts)) assumes centralized
+  route guards...
+```
+
+If an ADR genuinely has no external sources (rare), include the section
+with: `No sources referenced.`
 
 ## Index Format
 
