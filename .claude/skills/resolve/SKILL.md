@@ -56,6 +56,11 @@ resolution emerge from them.
 
 ## Workflow
 
+**AskUserQuestion rule:** Every question to the user **must** use
+`AskUserQuestion` with `multiSelect: true` and concrete options. This lets
+the user select relevant options, add notes to individual selections, and
+use "Other" for anything not covered. Never ask bare free-text questions.
+
 ```
 Step 1: Detect mode (DISTILL / CAPTURE / DELIBERATE)
 Step 2: Gather material (scan context, ask, surface resources)
@@ -73,7 +78,11 @@ If the conversation contains active debate about an architectural choice,
 default to DISTILL. If a decision was clearly just made, default to CAPTURE.
 If the user invoked `/resolve` without prior context, default to DELIBERATE.
 
-Ask to confirm: *"This looks like a [distill/capture/deliberate] situation — does that feel right?"*
+Use **AskUserQuestion** (`multiSelect: true`) to confirm mode:
+
+*"Based on the context, here's what I'm seeing:"*
+
+Options: **Distill** (decision is being debated right now) / **Capture** (a decision was just made) / **Deliberate** (tension or misfit to think through)
 
 ### Step 2 — Gather material
 
@@ -125,10 +134,15 @@ presenting the list in Step 3.
 - What alternatives were discussed and why they were accepted/rejected
 - What constraints or context shaped the discussion
 
-**DELIBERATE**: Ask the user to describe:
-- The situation — what's true right now
-- The tension — what's pulling in different directions
-- Any options they've already considered
+**DELIBERATE**: Use **AskUserQuestion** (`multiSelect: true`) to gather
+the user's starting position:
+
+*"What aspects of this decision can you describe so far?"*
+
+Options: **The situation** (what's true right now) / **The tension** (what's pulling in different directions) / **Options considered** (alternatives you've already thought about) / **Constraints** (hard limits or non-negotiables)
+
+The user's notes on each selected option provide the substantive content.
+Follow up with additional multiSelect questions to fill gaps.
 
 ### Step 3 — Review sources
 
@@ -138,15 +152,18 @@ links, fetched documentation, code files, and any other material surfaced
 during Step 2. Format the list as it would appear in the ADR's Sources
 section (numbered keys with paths/URLs and brief descriptions).
 
-Use **AskUserQuestion** to confirm:
+Use **AskUserQuestion** (`multiSelect: true`) to confirm:
 
 *"Here are the sources I've compiled that will inform this ADR:*
 
 *[numbered list of sources]*
 
-*Before I draft, I want to make sure this is complete. Anything to add, remove, or clarify?"*
+*Before I draft, I want to make sure this is complete."*
 
-Options: **Looks complete** / **I have sources to add** / **Some of these need clarification**
+Options: **Looks complete** / **I have sources to add** / **Some need removing** / **Some need clarification**
+
+The user can select multiple (e.g. add some and clarify others) and use
+notes on each selection to specify which sources and what changes.
 
 If the user adds sources, fetch and review them before proceeding. If the
 user flags sources for clarification, resolve each one. Repeat until the
@@ -171,19 +188,32 @@ on a specific source.
 
 ### Step 5 — Iterate section by section
 
-Walk through the draft using **AskUserQuestion** for each section. Ask one
-section at a time so the user can focus:
+Walk through the draft using **AskUserQuestion** (`multiSelect: true`) for
+each section. Ask one section at a time so the user can focus. Every
+question must have concrete options — the user selects what applies and
+uses notes on each selection to elaborate.
 
-- **Situation**: *"Does this capture the reality you're working in? Anything missing?"*
-- **Forces**: *"Are these the real tensions? Is anything pulling that I haven't named?"*
-- **Paths considered**: *"Are these honest alternatives? Would a reasonable person choose any of the rejected options?"*
-- **Therefore**: *"Does this feel like it follows from the forces, or does it feel imposed?"*
-- **Consequences**: Push here — *"What does this make harder? What options does it close? What new tensions does it create?"*
-- **Diagram**: Present 2–3 options for what the diagram should show (e.g., system topology after the decision, force diagram, before/after flow, dependency graph). Generate ASCII for simplicity or mermaid when topology is complex. The diagram must show something the prose doesn't — not decorative.
+- **Situation**: *"How does the Situation section read?"*
+  Options: **Accurate as written** / **Missing context** / **Needs rewording** / **Factually wrong**
 
-Use AskUserQuestion with concrete options where possible (e.g., "Looks good" /
-"Needs changes" / "Missing a force"), so the user can respond quickly when a
-section is solid and elaborate only when needed.
+- **Forces**: *"Are these the real tensions?"*
+  Options: **Forces are right** / **Missing a force** / **A force is overstated** / **A force is mischaracterized**
+
+- **Paths considered**: *"Are these honest alternatives?"*
+  Options: **Options are fair** / **Missing an option** / **An option is a strawman** / **Reasoning needs adjustment**
+
+- **Therefore**: *"Does the resolution follow from the forces?"*
+  Options: **Follows naturally** / **Feels imposed** / **Right decision, wrong framing** / **Wrong decision**
+
+- **Consequences**: Push here — *"How honest is the consequences section?"*
+  Options: **Honest and complete** / **Missing a downside** / **Overstates a risk** / **Missing new tensions**
+
+- **Diagram**: Present 2–3 options for what the diagram should show (e.g.,
+  system topology after the decision, force diagram, before/after flow,
+  dependency graph). Generate ASCII for simplicity or mermaid when topology
+  is complex. The diagram must show something the prose doesn't — not
+  decorative. Use `multiSelect: true` so the user can select a diagram type
+  and annotate with notes about what to emphasize.
 
 ### Step 6 — Save as Proposed
 
@@ -208,8 +238,12 @@ When the user signals they have annotated the document:
 2. **Find all annotations** — lines starting with `>` that were not part of the
    original draft (the situation paragraph uses `>` by convention, so look for
    *new* quoted lines that appear adjacent to other sections)
-3. **For each annotation**, use **AskUserQuestion** to clarify intent if needed,
-   then resolve the feedback into the document text
+3. **For each annotation**, use **AskUserQuestion** (`multiSelect: true`) to
+   clarify intent if needed. Offer concrete interpretations of the annotation
+   as options (e.g., **Rewrite this section** / **Add to existing text** /
+   **Remove this part** / **Replace with different framing**). The user's
+   notes on each selection provide the specific direction. Then resolve the
+   feedback into the document text
 4. **Save again** with status **Proposed**
 5. Tell the user: *"Updated. Review again — add more `> notes` if anything else
    needs work, or let me know it's ready to accept."*
@@ -220,11 +254,13 @@ annotations → save as Proposed → ask if done.
 ### Step 8 — Accept
 
 When the user indicates the ADR is final (no more feedback), use
-**AskUserQuestion** to confirm:
+**AskUserQuestion** (`multiSelect: true`) to confirm:
 
 *"Ready to mark this ADR as Accepted?"*
 
-Options: **Accept** / **One more round of feedback**
+Options: **Accept** / **One more round of feedback** / **Needs minor copy edits first**
+
+The user can add notes to specify any last-minute tweaks.
 
 On acceptance:
 1. Remove any remaining `> annotation` lines from the document
@@ -338,11 +374,11 @@ Maintain `.claude/adrs/index.md`:
 ## When the material is thin
 
 If the decision seems trivial or the forces are one-sided, do not refuse.
-Instead offer alternatives:
+Use **AskUserQuestion** (`multiSelect: true`) to offer alternatives:
 
-1. *"This could work as a lightweight decision log entry — the forces are pretty one-sided. Want to do that instead?"*
-2. *"Want to dig deeper? Sometimes a decision seems obvious until you name the forces."*
-3. *"Go ahead with a full ADR anyway — even simple decisions benefit from a record sometimes."*
+*"The forces seem fairly one-sided here. How would you like to proceed?"*
+
+Options: **Lightweight log entry** (quick single-paragraph record in log.md) / **Dig deeper** (sometimes a decision seems obvious until you name the forces) / **Full ADR anyway** (even simple decisions benefit from a record sometimes)
 
 A lightweight log entry is a single paragraph in a running log file at
 `.claude/adrs/log.md` with date, one-line decision, and brief rationale.
