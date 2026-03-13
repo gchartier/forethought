@@ -294,15 +294,13 @@ On acceptance:
 **Date:** YYYY-MM-DD
 **Deciders:** ...
 
-> A paragraph grounding you in the situation. Concrete, present-tense.
-> Not "background" — the lived reality that makes this decision
-> necessary. You are here, facing this.
+> A paragraph grounding you in the situation. Concrete, present-tense. Not "background" — the lived reality that makes this decision necessary. You are here, facing this.
 
 **Sources:**
 
-[1](relative/path/to/file.md) — Brief description of what this source is
-[2](https://example.com/relevant-doc) — Brief description
-[3](../adrs/001-prior-decision.md) — Brief description
+[1] [file.md](relative/path/to/file.md) — Brief description of what this source is
+[2] [relevant-doc](https://example.com/relevant-doc) — Brief description
+[3] [001-prior-decision.md](../adrs/001-prior-decision.md) — Brief description
 
 If no sources were referenced: "No sources referenced."
 
@@ -310,12 +308,10 @@ If no sources were referenced: "No sources referenced."
 
 **Forces:**
 
-- **Force name** — what pulls in one direction, and why
-- **Force name** — what pulls against it, and why
+1. **Force name** — what pulls in one direction, and why
+2. **Force name** — what pulls against it, and why
 
-Forces are genuine tensions, not a pro/con list. Each one names
-something real that resists a simple answer. Together they describe
-why this is hard.
+Forces are numbered so other sections can reference them (e.g., "this perpetuates Force 2"). They are genuine tensions, not a pro/con list. Each one names something real that resists a simple answer. Together they describe why this is hard.
 
 **Paths considered:**
 
@@ -350,6 +346,9 @@ What new tensions emerge — these are seeds for future decisions.
 
 ### Format notes
 
+- **No hard line wrapping.** Write each paragraph/bullet as a single long line.
+  Let the reader's editor handle wrapping. Do not insert manual line breaks
+  within sentences or paragraphs.
 - The **∴ Therefore** section is the structural heart. 1–3 sentences that
   resolve the forces. If it doesn't feel like it emerges from the forces,
   the forces section needs more work. Do not summarize — conclude.
@@ -364,9 +363,9 @@ What new tensions emerge — these are seeds for future decisions.
 
 ### Sources
 
-Every ADR **must** have a Sources section after the situation paragraph. Each source gets a numeric key (`[N](path/or/url)`) used as the visible link text both in the Sources list and inline throughout the body — so the reader can click through from any reference point.
+Every ADR **must** have a Sources section after the situation paragraph. Each source gets a numeric key, a **visible file/page name** as the markdown link text, and a brief description: `[N] [filename.md](path/to/filename.md) — description`. The name must always be present so the reader can see which file is referenced without hovering or clicking. Use the same `[N]` keys as inline references throughout the body wherever a claim, force, or option draws on a specific source.
 
-Sources include: backlog items, other ADRs, documentation, articles, code files, URLs — anything referenced during creation. Reference sources inline wherever a claim, force, or option draws on them: `([2](https://example.com/docs))`.
+Sources include: backlog items, other ADRs, documentation, articles, code files, URLs — anything referenced during creation.
 
 If no external sources were referenced (rare), include: `No sources referenced.`
 
