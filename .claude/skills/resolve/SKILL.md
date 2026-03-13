@@ -20,41 +20,11 @@ emerge from named forces — not imposed, but resolved.
 
 If either exists, acknowledge it briefly: *"I found the discovery spec and backlog for [project name]. I'll use them as context."*
 
-## Entry Points
-
-Detect which mode applies, or ask if unclear.
-
-### DISTILL — mid-conversation
-
-A decision is being debated right now. Your job:
-
-1. Scan conversation context for the decision point, tensions, and alternatives
-2. Name what you see: *"It looks like the main decision is X, with tension between Y and Z. The alternatives so far are A, B, C. Is that right?"*
-3. Draft a complete ADR with status **Proposed**
-4. Iterate with the user to sharpen it
-
-### CAPTURE — post-decision
-
-A decision was just made. Your job:
-
-1. Scan conversation context for what was decided, why, and what was rejected
-2. Draft a complete ADR with status **Proposed**
-3. Iterate to confirm accuracy, especially the Consequences
-
-### DELIBERATE — greenfield
-
-The user has a tension or misfit to think through. Your job:
-
-1. Ask them to describe the tension, the felt difficulty, the misfit
-2. Help them name the forces — what pulls in each direction
-3. Generate genuine alternatives (no strawmen)
-4. Reason through options together, letting a resolution emerge
-5. Draft a complete ADR with status **Proposed**
-
-This mode is the most Alexandrian: feel the misfit, name the forces, let the
-resolution emerge from them.
-
 ## Workflow
+
+The user has a tension or misfit to think through. Your job: help them feel
+the misfit, name the forces, generate genuine alternatives, reason through
+options together, and let the resolution emerge. Then record it.
 
 **AskUserQuestion rule:** Every question to the user **must** use
 `AskUserQuestion` with `multiSelect: true` and concrete options. This lets
@@ -62,29 +32,16 @@ the user select relevant options, add notes to individual selections, and
 use "Other" for anything not covered. Never ask bare free-text questions.
 
 ```
-Step 1: Detect mode (DISTILL / CAPTURE / DELIBERATE)
-Step 2: Gather material (scan context, ask, surface resources)
-Step 3: Review sources (present compiled list, user confirms before drafting)
-Step 4: Draft full ADR (draft aggressively, confirm explicitly)
-Step 5: Iterate section by section (including diagram)
-Step 6: Save as Proposed
-Step 7: Feedback cycle (user annotates → agent resolves → repeat)
-Step 8: Accept
+Step 1: Gather material (ask, surface resources)
+Step 2: Review sources (present compiled list, user confirms before drafting)
+Step 3: Draft full ADR (draft aggressively, confirm explicitly)
+Step 4: Iterate section by section (including diagram)
+Step 5: Save as Proposed
+Step 6: Feedback cycle (user annotates → agent resolves → repeat)
+Step 7: Accept
 ```
 
-### Step 1 — Detect mode
-
-If the conversation contains active debate about an architectural choice,
-default to DISTILL. If a decision was clearly just made, default to CAPTURE.
-If the user invoked `/resolve` without prior context, default to DELIBERATE.
-
-Use **AskUserQuestion** (`multiSelect: true`) to confirm mode:
-
-*"Based on the context, here's what I'm seeing:"*
-
-Options: **Distill** (decision is being debated right now) / **Capture** (a decision was just made) / **Deliberate** (tension or misfit to think through)
-
-### Step 2 — Gather material
+### Step 1 — Gather material
 
 **Always**: Read `.claude/adrs/backlog.md` to check if this decision matches a
 backlog item. If it does, pull in the item's research notes, tensions, spec
@@ -126,16 +83,9 @@ Return a concise summary with specific references I can cite."*
 Use `subagent_type: "general-purpose"` for these delegations. Launch
 multiple source subagents in parallel when several long sources need
 processing. Fold their results into your source compilation before
-presenting the list in Step 3.
+presenting the list in Step 2.
 
-**DISTILL/CAPTURE**: Mine the conversation for:
-- What is being decided (or was decided)
-- What forces are in tension
-- What alternatives were discussed and why they were accepted/rejected
-- What constraints or context shaped the discussion
-
-**DELIBERATE**: Use **AskUserQuestion** (`multiSelect: true`) to gather
-the user's starting position:
+Use **AskUserQuestion** (`multiSelect: true`) to gather the user's starting position:
 
 *"What aspects of this decision can you describe so far?"*
 
@@ -144,12 +94,12 @@ Options: **The situation** (what's true right now) / **The tension** (what's pul
 The user's notes on each selected option provide the substantive content.
 Follow up with additional multiSelect questions to fill gaps.
 
-### Step 3 — Review sources
+### Step 2 — Review sources
 
 Before drafting, present the user with a consolidated list of every source
 identified so far — from the backlog, conversation context, user-provided
 links, fetched documentation, code files, and any other material surfaced
-during Step 2. Format the list as it would appear in the ADR's Sources
+during Step 1. Format the list as it would appear in the ADR's Sources
 section (numbered keys with paths/URLs and brief descriptions).
 
 Use **AskUserQuestion** (`multiSelect: true`) to confirm:
@@ -171,7 +121,7 @@ user confirms the source list is complete.
 
 Only proceed to drafting once the user has signed off on the sources.
 
-### Step 4 — Draft full ADR
+### Step 3 — Draft full ADR
 
 Present a **complete draft** using the format below. A full document is easier
 to react to than a blank template. The user's job is editing, not writing.
@@ -203,7 +153,7 @@ each a numeric key and include them in the Sources section. Use those keys
 as inline references throughout the draft wherever a claim or option draws
 on a specific source.
 
-### Step 5 — Iterate section by section
+### Step 4 — Iterate section by section
 
 Walk through the draft using **AskUserQuestion** (`multiSelect: true`) for
 each section. Ask one section at a time so the user can focus. Every
@@ -232,9 +182,9 @@ uses notes on each selection to elaborate.
   decorative. Use `multiSelect: true` so the user can select a diagram type
   and annotate with notes about what to emphasize.
 
-### Step 6 — Save as Proposed
+### Step 5 — Save as Proposed
 
-**Always save with status Proposed**, regardless of mode.
+**Always save with status Proposed.**
 
 1. Read `.claude/adrs/` to find the highest existing number
 2. Assign the next sequential number (zero-padded to 3 digits)
@@ -247,7 +197,7 @@ After saving, tell the user: *"Saved as Proposed. Review the document and add
 any feedback directly as markdown quotes (`> your note`) wherever you want
 changes. Let me know when you're done annotating."*
 
-### Step 7 — Feedback cycle
+### Step 6 — Feedback cycle
 
 When the user signals they have annotated the document:
 
@@ -268,7 +218,7 @@ When the user signals they have annotated the document:
 Repeat this cycle as many times as needed. Each round: read → resolve
 annotations → save as Proposed → ask if done.
 
-### Step 8 — Accept
+### Step 7 — Accept
 
 When the user indicates the ADR is final (no more feedback), use
 **AskUserQuestion** (`multiSelect: true`) to confirm:
