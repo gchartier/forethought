@@ -179,6 +179,23 @@ to react to than a blank template. The user's job is editing, not writing.
 Include all sections, even if some are thin. Mark uncertain parts with
 `[?]` so the user knows where to focus.
 
+**No repetition.** Each section must add information the reader hasn't seen
+yet. Reference earlier sections by name rather than re-explaining them. If a
+sentence would be true whether or not the reader had skipped the current
+section, it's redundant — cut it. Specifically:
+
+- **Situation** sets the scene. It should not pre-argue the forces.
+- **Forces** name the tensions. They do the analytical work.
+- **Paths** reference forces by name ("this perpetuates the opacity problem")
+  rather than re-describing them. Each path's writeup focuses on what's
+  *unique* to that option — what it resolves and what it leaves unresolved.
+- **Therefore** is 1–3 sentences. It names the resolution. It does not
+  summarize the forces or paths — the reader just read them.
+- **Resulting context** describes only consequences, trade-offs, and new
+  tensions. It does not restate the decision or its rationale. If reference
+  material (e.g., a translation guide) is warranted, link to a separate file
+  rather than inlining it.
+
 **Sources are mandatory.** Before drafting, compile the list of every document,
 file, URL, or resource that informed the ADR — backlog items, other ADRs,
 documentation, articles, code files, conversation-referenced links. Assign
@@ -333,10 +350,13 @@ What new tensions emerge — these are seeds for future decisions.
 
 ### Format notes
 
-- The **∴ Therefore** section is the structural heart. If it doesn't feel
-  like it emerges from the forces, the forces section needs more work.
-- **Resulting context** should name new tensions that seed future decisions.
-  The resulting context of one ADR is the opening situation of the next.
+- The **∴ Therefore** section is the structural heart. 1–3 sentences that
+  resolve the forces. If it doesn't feel like it emerges from the forces,
+  the forces section needs more work. Do not summarize — conclude.
+- **Resulting context** names only what *changes*: what's now easier, harder,
+  and what new tensions emerge. These seed future decisions — the resulting
+  context of one ADR is the opening situation of the next. Never restate the
+  decision or rationale here.
 - **Linked decisions** connect to prior ADRs that this supersedes, builds on,
   or tensions with. Check existing ADRs for relevant links.
 - The **diagram** shows structural or relational consequences — not the
